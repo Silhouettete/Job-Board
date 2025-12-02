@@ -9,7 +9,10 @@ import {
   insertOrganization,
   updateOrganization,
 } from "@/features/organizations/db/organizations";
-import { insertOrganizationUserSettings } from "@/features/organizations/db/organizationUserSettings";
+import {
+  deleteOrganizationUserSettings,
+  insertOrganizationUserSettings,
+} from "@/features/organizations/db/organizationUserSettings";
 function verifyWebhook({
   raw,
   headers,
@@ -256,7 +259,7 @@ export const clerkDeleteOrganizationMembership = inngest.createFunction(
       const userId = event.data.data.public_user_data.user_id;
       const orgId = event.data.data.organization.id;
 
-      await insertOrganizationUserSettings({
+      await deleteOrganizationUserSettings({
         userId,
         organizationId: orgId,
       });
