@@ -28,7 +28,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "src/features/organizations/db/cache/organizationsUserSettingsts"
+    "**/*.mts"
   ],
   "exclude": ["node_modules"]
 }

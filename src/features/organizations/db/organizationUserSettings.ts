@@ -1,6 +1,7 @@
 import { db } from "@/drizzle/db";
 import { OrganizationUserSettingsTable } from "@/drizzle/schema";
 import { revalidateOrganizationUserSettingsCache } from "./cache/organizationsUserSettings";
+import { and, eq } from "drizzle-orm";
 
 export async function insertOrganizationUserSettings(
   settings: typeof OrganizationUserSettingsTable.$inferInsert
@@ -8,24 +9,52 @@ export async function insertOrganizationUserSettings(
   const [newSettings] = await db
     .insert(OrganizationUserSettingsTable)
     .values(settings)
-    .onConflictDoNothing()
-    .returning({
-      userId: OrganizationUserSettingsTable.userId,
-      organizationId: OrganizationUserSettingsTable.organizationId,
-    });
+    .onConflictDoNothing();
+
   revalidateOrganizationUserSettingsCache(newSettings);
 }
 
-export async function deleteOrganizationUserSettings(
-  settings: typeof OrganizationUserSettingsTable.$inferInsert
+export async function deleteOrganizationUserSettings({
+  userId,
+  organizationId,
+}: {
+  userId: string;
+  organizationId: string;
+}) {
+  await db
+    .delete(OrganizationUserSettingsTable)
+    .where(
+      and(
+        eq(OrganizationUserSettingsTable.userId, userId),
+        eq(OrganizationUserSettingsTable.organizationId, organizationId)
+      )
+    );
+  revalidateOrganizationUserSettingsCache({ userId, organizationId });
+}
+export async function updateOrganizationUserSettings(
+  {
+    userId,
+    organizationId,
+  }: {
+    userId: string;
+    organizationId: string;
+  },
+  settings: Partial<
+    Omit<
+      typeof OrganizationUserSettingsTable.$inferInsert,
+      "userId" | "organizationId"
+    >
+  >
 ) {
-  const [newSettings] = await db
+  await db
     .insert(OrganizationUserSettingsTable)
-    .values(settings)
-    .onConflictDoNothing()
-    .returning({
-      userId: OrganizationUserSettingsTable.userId,
-      organizationId: OrganizationUserSettingsTable.organizationId,
+    .values({ ...settings, userId, organizationId })
+    .onConflictDoUpdate({
+      target: [
+        OrganizationUserSettingsTable.userId,
+        OrganizationUserSettingsTable.organizationId,
+      ],
+      set: settings,
     });
-  revalidateOrganizationUserSettingsCache(newSettings);
+  revalidateOrganizationUserSettingsCache({ userId, organizationId });
 }
