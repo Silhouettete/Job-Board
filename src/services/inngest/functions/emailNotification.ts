@@ -2,7 +2,9 @@ import { db } from "@/drizzle/db";
 import { inngest } from "../client";
 import { and, eq, gte } from "drizzle-orm";
 import {
+  JobListingApplicationTable,
   JobListingTable,
+  OrganizationUserSettingsTable,
   UserNotificationSettingsTable,
 } from "@/drizzle/schema";
 import { subDays } from "date-fns";
@@ -131,6 +133,146 @@ export const sendDailyUserJobListingEmail = inngest.createFunction(
         subject: "Daily Job Listings",
         react: DailyJobListingEmail({
           jobListings,
+          userName: user.name,
+          serverUrl: env.SERVER_URL,
+        }),
+      });
+    });
+  }
+);
+
+export const prepareDailyOrganizationUserApplicationNotifications =
+  inngest.createFunction(
+    {
+      id: "prepare-daily-organization-user-application-notifications",
+      name: "Prepare Daily Organization User Application Notifications",
+    },
+    { cron: "TZ=America/Chicago 0 7 * * *" },
+    async ({ step, event }) => {
+      const getUsers = step.run("get-user-settings", async () => {
+        return await db.query.OrganizationUserSettingsTable.findMany({
+          where: eq(
+            OrganizationUserSettingsTable.newApplicationEmailNotifications,
+            true
+          ),
+          columns: {
+            userId: true,
+            organizationId: true,
+            newApplicationEmailNotifications: true,
+            minimumRating: true,
+          },
+          with: {
+            user: {
+              columns: {
+                email: true,
+                name: true,
+              },
+            },
+          },
+        });
+      });
+      const getApplications = step.run("get-recent-applications", async () => {
+        return await db.query.JobListingApplicationTable.findMany({
+          where: gte(
+            JobListingApplicationTable.createdAt,
+            subDays(new Date(event.ts ?? Date.now()), 1)
+          ),
+          columns: {
+            rating: true,
+          },
+          with: {
+            user: {
+              columns: { name: true },
+            },
+            jobListing: {
+              columns: {
+                id: true,
+                title: true,
+              },
+              with: {
+                organization: {
+                  columns: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      const [userNotifications, applications] = await Promise.all([
+        getUsers,
+        getApplications,
+      ]);
+      if (applications.length === 0 || userNotifications.length === 0) return;
+      //Group settings for all the individual users
+      const groupedNotifications = Object.groupBy(
+        userNotifications,
+        (n) => n.userId
+      );
+      const events = Object.entries(groupedNotifications)
+        .map(([, settings]) => {
+          if (settings == null || settings.length == 0) return null;
+          //this is the user receiving the email
+          const userName = settings[0].user.name;
+          const userEmail = settings[0].user.email;
+          const filteredApplications = applications
+            .filter((application) => {
+              return settings.find(
+                (setting) =>
+                  setting.organizationId ===
+                    application.jobListing.organization.id &&
+                  (setting.minimumRating == null ||
+                    (application.rating ?? 0) >= setting.minimumRating)
+              );
+            })
+            .map((a) => ({
+              organizationId: a.jobListing.organization.id,
+              organizationName: a.jobListing.organization.name,
+              jobListingId: a.jobListing.id,
+              jobListingTitle: a.jobListing.title,
+              //this is the user applying for jobs
+              userName: a.user.name,
+              rating: a.rating,
+            }));
+          if (filteredApplications.length === 0) return null;
+          return {
+            name: "app/email.daily-organization-user-applications",
+            user: {
+              name: userName,
+              email: userEmail,
+            },
+            data: { applications: filteredApplications },
+          } as const satisfies GetEvents<
+            typeof inngest
+          >["app/email.daily-organization-user-applications"];
+        })
+        .filter((val) => val != null);
+      await step.sendEvent("send-emails", events);
+    }
+  );
+export const sendDailyOrganizationUserApplicationEmail = inngest.createFunction(
+  {
+    id: "send-daily-organization-user-application-email",
+    name: "Send Daily Organization User Application Email",
+    throttle: {
+      limit: 1000,
+      period: "1m",
+    },
+  },
+  { event: "app/email.daily-organization-user-applications" },
+  async ({ event, step }) => {
+    const { applications } = event.data;
+    const user = event.user;
+    if (applications.length === 0) return;
+    await step.run("send-email", async () => {
+      await resend.emails.send({
+        from: "Job Board <onboarding@resend.dev>",
+        to: user.email,
+        subject: "Daily Job Listing Applications",
+        react: DailyApplicationEmail({
+          applications,
           userName: user.name,
           serverUrl: env.SERVER_URL,
         }),

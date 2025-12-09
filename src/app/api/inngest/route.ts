@@ -13,7 +13,9 @@ import {
 import { createAISummaryOfUploadedResume } from "@/services/inngest/functions/resume";
 import { rankApplication } from "@/services/inngest/functions/jobListingApplication";
 import {
+  prepareDailyOrganizationUserApplicationNotifications,
   prepareDailyUserJobListingNotifications,
+  sendDailyOrganizationUserApplicationEmail,
   sendDailyUserJobListingEmail,
 } from "@/services/inngest/functions/emailNotification";
 
@@ -32,7 +34,9 @@ export const { GET, POST, PUT } = serve({
     clerkDeleteOrganizationMembership,
     createAISummaryOfUploadedResume,
     rankApplication,
-    sendDailyUserJobListingEmail,
     prepareDailyUserJobListingNotifications,
+    sendDailyUserJobListingEmail,
+    prepareDailyOrganizationUserApplicationNotifications,
+    sendDailyOrganizationUserApplicationEmail,
   ],
 });
