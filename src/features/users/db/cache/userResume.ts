@@ -10,6 +10,6 @@ export function getUserResumeIdTag(userId: string) {
 }
 
 export function revalidateUserResumeCache(userId: string) {
-  revalidateTag(getUserResumeGlobalTag());
-  revalidateTag(getUserResumeIdTag(userId));
+  revalidateTag(getUserResumeGlobalTag(), "default");
+  revalidateTag(getUserResumeIdTag(userId), "default");
 }

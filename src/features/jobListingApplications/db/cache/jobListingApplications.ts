@@ -20,7 +20,10 @@ export function revalidateJobListingApplicationCache(id: {
   userId: string;
   jobListingId: string;
 }) {
-  revalidateTag(getJobListingApplicationGlobalTag());
-  revalidateTag(getJobListingApplicationJobListingTag(id.jobListingId));
-  revalidateTag(getJobListingApplicationIdTag(id));
+  revalidateTag(getJobListingApplicationGlobalTag(id.jobListingId), "default");
+  revalidateTag(
+    getJobListingApplicationJobListingTag(id.jobListingId),
+    "default"
+  );
+  revalidateTag(getJobListingApplicationIdTag(id), "default");
 }
