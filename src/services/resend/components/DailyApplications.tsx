@@ -27,9 +27,11 @@ type Application = Pick<
 export default function DailyApplicationEmail({
   applications,
   userName,
+  serverUrl,
 }: {
   applications: Application[];
   userName: string;
+  serverUrl: string;
 }) {
   return (
     <Tailwind config={tailwindConfig}>
@@ -44,8 +46,8 @@ export default function DailyApplicationEmail({
           {Object.entries(
             Object.groupBy(
               applications,
-              (application) => application.organizationId
-            )
+              (application) => application.organizationId,
+            ),
           ).map(([orgId, orgApplications], i) => {
             if (orgApplications == null || orgApplications.length === 0) {
               return null;
@@ -79,7 +81,7 @@ function OrganizationSection({
         {orgName}
       </Heading>
       {Object.entries(
-        Object.groupBy(applications, (application) => application.jobListingId)
+        Object.groupBy(applications, (application) => application.jobListingId),
       ).map(([jobListingId, listingApplications], i) => {
         if (listingApplications == null || listingApplications.length === 0) {
           return null;
@@ -109,7 +111,7 @@ function JobListingCard({
     <div
       className={cn(
         "bg-card text-card-foreground rounded-lg border p-4 border-primary border-solid",
-        !noMargin && "mt-6"
+        !noMargin && "mt-6",
       )}
     >
       <Heading as="h3" className="leading-none font-semibold text-3xl mb-3">
@@ -133,7 +135,7 @@ function RatingIcons({ rating }: { rating: number | null }) {
     stars.push(
       <span key={i} className="w-3 -mb-[7px] mr-0.5">
         {rating >= i ? "★" : "☆"}
-      </span>
+      </span>,
     );
   }
   return stars;

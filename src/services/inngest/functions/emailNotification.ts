@@ -13,6 +13,7 @@ import { resend } from "@/services/resend/client";
 import { env } from "@/data/env/server";
 import { getMatchedJobListings } from "../ai/getMatchedJobListings";
 import DailyJobListingEmail from "@/services/resend/components/DailyJobListings";
+import DailyApplicationEmail from "@/services/resend/components/DailyApplications";
 
 export const prepareDailyUserJobListingNotifications = inngest.createFunction(
   {
@@ -47,9 +48,9 @@ export const prepareDailyUserJobListingNotifications = inngest.createFunction(
         where: and(
           gte(
             JobListingTable.postedAt,
-            subDays(new Date(event.ts ?? Date.now()), 1)
+            subDays(new Date(event.ts ?? Date.now()), 1),
           ),
-          eq(JobListingTable.status, "published")
+          eq(JobListingTable.status, "published"),
         ),
         columns: {
           createdAt: false,
@@ -95,7 +96,7 @@ export const prepareDailyUserJobListingNotifications = inngest.createFunction(
     });
 
     await step.sendEvent("send-emails", events);
-  }
+  },
 );
 
 export const sendDailyUserJobListingEmail = inngest.createFunction(
@@ -120,7 +121,7 @@ export const sendDailyUserJobListingEmail = inngest.createFunction(
     } else {
       const matchingIds = await getMatchedJobListings(aiPrompt, jobListings);
       matchingJobListings = jobListings.filter((listing) =>
-        matchingIds.includes(listing.id)
+        matchingIds.includes(listing.id),
       );
     }
 
@@ -138,7 +139,7 @@ export const sendDailyUserJobListingEmail = inngest.createFunction(
         }),
       });
     });
-  }
+  },
 );
 
 export const prepareDailyOrganizationUserApplicationNotifications =
@@ -153,7 +154,7 @@ export const prepareDailyOrganizationUserApplicationNotifications =
         return await db.query.OrganizationUserSettingsTable.findMany({
           where: eq(
             OrganizationUserSettingsTable.newApplicationEmailNotifications,
-            true
+            true,
           ),
           columns: {
             userId: true,
@@ -175,7 +176,7 @@ export const prepareDailyOrganizationUserApplicationNotifications =
         return await db.query.JobListingApplicationTable.findMany({
           where: gte(
             JobListingApplicationTable.createdAt,
-            subDays(new Date(event.ts ?? Date.now()), 1)
+            subDays(new Date(event.ts ?? Date.now()), 1),
           ),
           columns: {
             rating: true,
@@ -209,7 +210,7 @@ export const prepareDailyOrganizationUserApplicationNotifications =
       //Group settings for all the individual users
       const groupedNotifications = Object.groupBy(
         userNotifications,
-        (n) => n.userId
+        (n) => n.userId,
       );
       const events = Object.entries(groupedNotifications)
         .map(([, settings]) => {
@@ -224,7 +225,7 @@ export const prepareDailyOrganizationUserApplicationNotifications =
                   setting.organizationId ===
                     application.jobListing.organization.id &&
                   (setting.minimumRating == null ||
-                    (application.rating ?? 0) >= setting.minimumRating)
+                    (application.rating ?? 0) >= setting.minimumRating),
               );
             })
             .map((a) => ({
@@ -250,7 +251,7 @@ export const prepareDailyOrganizationUserApplicationNotifications =
         })
         .filter((val) => val != null);
       await step.sendEvent("send-emails", events);
-    }
+    },
   );
 export const sendDailyOrganizationUserApplicationEmail = inngest.createFunction(
   {
@@ -274,9 +275,8 @@ export const sendDailyOrganizationUserApplicationEmail = inngest.createFunction(
         react: DailyApplicationEmail({
           applications,
           userName: user.name,
-          serverUrl: env.SERVER_URL,
         }),
       });
     });
-  }
+  },
 );
