@@ -27,11 +27,9 @@ type Application = Pick<
 export default function DailyApplicationEmail({
   applications,
   userName,
-  serverUrl,
 }: {
   applications: Application[];
   userName: string;
-  serverUrl: string;
 }) {
   return (
     <Tailwind config={tailwindConfig}>
