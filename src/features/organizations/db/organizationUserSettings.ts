@@ -4,12 +4,13 @@ import { revalidateOrganizationUserSettingsCache } from "./cache/organizationsUs
 import { and, eq } from "drizzle-orm";
 
 export async function insertOrganizationUserSettings(
-  settings: typeof OrganizationUserSettingsTable.$inferInsert
+  settings: typeof OrganizationUserSettingsTable.$inferInsert,
 ) {
   const [newSettings] = await db
     .insert(OrganizationUserSettingsTable)
     .values(settings)
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning();
 
   revalidateOrganizationUserSettingsCache(newSettings);
 }
@@ -26,8 +27,8 @@ export async function deleteOrganizationUserSettings({
     .where(
       and(
         eq(OrganizationUserSettingsTable.userId, userId),
-        eq(OrganizationUserSettingsTable.organizationId, organizationId)
-      )
+        eq(OrganizationUserSettingsTable.organizationId, organizationId),
+      ),
     );
   revalidateOrganizationUserSettingsCache({ userId, organizationId });
 }
@@ -44,7 +45,7 @@ export async function updateOrganizationUserSettings(
       typeof OrganizationUserSettingsTable.$inferInsert,
       "userId" | "organizationId"
     >
-  >
+  >,
 ) {
   await db
     .insert(OrganizationUserSettingsTable)
