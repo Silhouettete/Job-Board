@@ -46,9 +46,14 @@ export function NotificationForm({
   });
 
   async function onSubmit(
-    data: z.infer<typeof organizationUserSettingsSchema>
+    data: z.infer<typeof organizationUserSettingsSchema>,
   ) {
     const result = await updateOrganizationUserSettings(data);
+
+    if (!result) {
+      toast.error("Something went wrong");
+      return;
+    }
 
     if (result.error) {
       toast.error(result.message);
@@ -56,9 +61,8 @@ export function NotificationForm({
       toast.success(result.message);
     }
   }
-
   const newApplicationEmailNotifications = form.watch(
-    "newApplicationEmailNotifications"
+    "newApplicationEmailNotifications",
   );
 
   return (
