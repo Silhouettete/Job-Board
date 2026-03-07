@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode, Suspense } from "react";
 import {
   SignedOut as ClerkSignedOut,
