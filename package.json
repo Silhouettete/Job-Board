@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -75,7 +75,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.5",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1-canary.2",
+    "eslint-config-next": "^16.1.6",
     "inngest-cli": "^1.12.1",
     "react-email": "^5.0.5",
     "tailwindcss": "^4",
