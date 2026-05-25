@@ -40,70 +40,6 @@ A full-stack recruitment platform where companies post jobs and candidates apply
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- Docker (for local PostgreSQL)
-- Clerk account — [clerk.com](https://clerk.com)
-- Inngest account — [inngest.com](https://inngest.com)
-
-### 1. Clone and install
-
-```bash
-git clone https://github.com/Silhouettete/Job-Board.git
-cd Job-Board
-npm install
-```
-
-### 2. Set up environment variables
-
-Create a `.env.local` file in the root:
-
-```env
-# Database
-DATABASE_URL=postgresql://postgres:password@localhost:5432/jobboard
-
-# Clerk
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
-CLERK_SECRET_KEY=your_secret_key
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-
-# Inngest
-INNGEST_EVENT_KEY=your_event_key
-INNGEST_SIGNING_KEY=your_signing_key
-```
-
-### 3. Start the database
-
-```bash
-docker-compose up -d
-```
-
-### 4. Run migrations
-
-```bash
-npx drizzle-kit migrate
-```
-
-### 5. Start the dev server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-To run Inngest locally alongside the dev server:
-
-```bash
-npx inngest-cli@latest dev
-```
-
----
-
 ## Project Structure
 
 ```
@@ -126,6 +62,4 @@ For the Inngest background jobs to work in production, add your `/api/inngest` e
 
 ---
 
-## Author
 
-**Swan Pyae Aung** — [LinkedIn](https://linkedin.com/in/swan-pyaeaung) · [Portfolio](https://portfolio-website-tau-five-59.vercel.app)
